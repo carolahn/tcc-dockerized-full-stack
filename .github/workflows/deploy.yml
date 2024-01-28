@@ -48,5 +48,5 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY_PEM }}
           script: |
             sudo su
-            sudo docker compose -f docker-compose.prod.yml up
+            sudo docker-compose -f docker-compose.prod.yml up --build
           
