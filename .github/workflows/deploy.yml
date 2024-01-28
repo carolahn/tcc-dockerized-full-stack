@@ -45,6 +45,6 @@ jobs:
           script: |
             sudo su
             git clone https://github.com/carolahn/tcc-dockerized-full-stack.git .
-            export COMPOSE_FILE=docker-compose.yml
+            export COMPOSE_FILE=docker-compose.prod.yml
             sudo docker-compose up --build
           
