@@ -1,30 +1,15 @@
 name: Deploy to EC2
 
 on:
-  push:
-    branches:
-      - main
+    workflow_run:
+        workflows: ["Push docker images"]
+        types:
+            - completed
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-      - name: Build and push Docker images
-        run: |
-            cd client
-            docker build -t ${{ secrets.DOCKERHUB_CLIENT_URL }}:latest .
-            echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-            docker push ${{ secrets.DOCKERHUB_CLIENT_URL }}:latest
-            cd ../server
-            docker build -t ${{ secrets.DOCKERHUB_SERVER_URL }}:latest .
-            echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-            docker push ${{ secrets.DOCKERHUB_SERVER_URL }}:latest
       - name: Install docker on EC2
         uses: appleboy/ssh-action@master
         with:
@@ -40,6 +25,17 @@ jobs:
             sudo usermod -aG docker $USER
             sudo usermod -aG docker ubuntu
             exec bash
+      - name: Install docker-compose on EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST_DNS }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY_PEM }}
+          script: |
+            sudo su
+            sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+            docker-compose --version
       - name: Deploy to EC2
         uses: appleboy/ssh-action@master
         with:
@@ -49,5 +45,5 @@ jobs:
           script: |
             sudo su
             export COMPOSE_FILE=docker-compose.prod.yml
-            sudo docker compose up --build
+            sudo docker-compose up --build
           
