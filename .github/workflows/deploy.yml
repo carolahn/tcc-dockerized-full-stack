@@ -44,7 +44,8 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY_PEM }}
           script: |
             sudo su
-            git clone https://github.com/carolahn/tcc-dockerized-full-stack.git .
+            git clone https://github.com/carolahn/tcc-dockerized-full-stack.git
+            cd tcc-dockerized-full-stack
             export COMPOSE_FILE=docker-compose.prod.yml
             sudo docker-compose up --build
           
